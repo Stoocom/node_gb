@@ -1,0 +1,23 @@
+{
+  "name": "node_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stoocom/node_gb.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Stoocom/node_gb/issues"
+  },
+  "homepage": "https://github.com/Stoocom/node_gb#readme",
+  "dependencies": {
+    "colors": "^1.4.0"
+  }
+}
