@@ -1,82 +1,50 @@
-const colors = require("colors/safe");
-const readline = require ('readline');
+// 2 задача
 
+const EventEmitter = require('events');
+var moment = require('moment');
 
-const rl = readline.createInterface({ input: process.stdin,   output: process.stdout });
+const emitter = new EventEmitter();
 
-let firstNumber = null;
-let secondNumber = null;
-let arr = [];
-let orderCounter = "green";
+let newData = process.argv.slice(2)[0].split('-').reverse().join('-');
+let stringData = newData.substring(0, 10) + 'T' + newData.substring(11);
+let formattedDateMiliSeconds = moment(stringData).valueOf()-moment().valueOf();
 
-const isPrime = num => {
-    for(let i = 2, s = Math.sqrt(num); i <= s; i++)
-        if(num % i === 0) return false; 
-    return num > 1;
-}
-
-function findPrimesCount(firstNumber, secondNumber) {
-    for (let i = firstNumber; i <= secondNumber; i++) {
-        if ( isPrime(i) ) {
-            arr.push(i); 
-        }
+const run = async () => {
+    if (formattedDateMiliSeconds <= 0) {
+        emitter.emit('close');
+    } else {
+        emitter.emit('update', formattedDateMiliSeconds);
+        formattedDateMiliSeconds-=1000;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await run();
     }
 }
 
-rl.question('Введите первое число диапазона', (answer) => { 
-      
-    if (isNaN(+answer)) {
-        console.log("Вы ввели не число");
-        process.exit();
-    }
+class Handlers {
+    static update(payload) {
+        console.log(payload);
+        let diff = moment.duration(payload, 'milliseconds');
+        let y = Math.floor(diff.years());
+        let mn = Math.floor(diff.months());
+        let d = Math.floor(diff.days());
+        let h = Math.floor(diff.hours());
+        let m = Math.floor(diff.minutes());
+        let s = Math.floor(diff.seconds());
 
-    firstNumber = +answer;
-
-    rl.question('Введите второе число диапазона', (answer) => { 
-        
-        if (isNaN(+answer)) {
-            console.log("Вы ввели не число");
-            process.exit();
-        }
-        secondNumber = +answer;
-        console.log(typeof firstNumber);
-
-        if (typeof secondNumber !== 'number') {
-            console.log("Вы ввели не число");
-            rl.close();
-        }
-
-        if (firstNumber < 0) {
-            firstNumber = 2;
-        }
-        if (secondNumber < 0) {
-            secondNumber = 2;
-        }
-
-        if (firstNumber > secondNumber) {
-            findPrimesCount(secondNumber,firstNumber);
+        if (payload <= 3600000) {
+            console.log("Таймер: "+m+" минут "+s+" секунд");
+        } else if ((payload > 3600000) || (payload <= 86400000)){
+            console.log("Таймер: "+d+" дней "+h+" часов "+m+" минут "+s+" секунд");
         } else {
-            findPrimesCount(firstNumber,secondNumber);
+            console.log("Таймер: "+y+" лет "+mn+" месяцев "+d+" дней "+h+" часов "+m+" минут "+s+" секунд");
         }
-
-        if (arr.length === 0) {
-            console.log("Простых чисел в заданном диапазоне не найдено")
-        }
-        
-        arr.forEach((item) => {
-            if (orderCounter === "green") {
-                console.log(colors.green(item));
-                orderCounter = "yellow";
-            } else if (orderCounter === "yellow") {
-                console.log(colors.yellow(item));
-                orderCounter = "red";
-            } else if (orderCounter === "red") {
-                console.log(colors.red(item));
-                orderCounter = "green";
-            }
-        })
-
-        rl.close();
-    });
-});
-
+    }
+    static close() {
+        console.log('Таймер завершен');
+    }
+}
+  
+emitter.on('update', Handlers.update);
+emitter.on('close', Handlers.close);
+  
+run();
