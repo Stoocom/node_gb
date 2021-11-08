@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket</title>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div style="float: left;">
+        <input id="input" type="text" autofocus>
+        <button id="button">Send</button>
+        <div id="messages"></div>
+    </div>
+    <div id="online" style="width: 150px; min-height: 100px; float: right; background: lightsalmon; color: rgb(53, 53, 143); font-size: 12px; font-weight: bold;">
+        <h2 id="counter" style="margin-left: 10px">В сети: </h2>
+        <ul id="online_list" style="margin-top: 10px"></ul>
+    </div>
+<script>
+
+    const socket = io('localhost:3000');
+    const messagesBlock = document.querySelector('#messages');
+    const sendButton = document.querySelector('#button');
+    const input = document.querySelector('#input');
+    const listBlock = document.querySelector('#online_list');
+
+    sendButton.onclick = () => {
+        const data = {
+            message: input.value,
+        };
+        socket.emit('client-msg', data);
+        input.value = '';
+    }
+
+    let userNick = prompt("Write your name or nickname, please");
+    socket.emit('client-check', userNick);
+    socket.on('connect', () => {
+        console.log('Connected');
+    });
+    
+    socket.on('server-msg', data => {
+        messagesBlock.insertAdjacentHTML('afterbegin', `<div>${data.userNameMsg}: ${data.message}</div>`);
+    });
+    socket.on('server-notice', data => {
+        messagesBlock.insertAdjacentHTML('beforeBegin', `<div id="attention">${data.note}</div>`);
+        setTimeout(() => { 
+            document.getElementById('attention').remove();
+        }, 3000);
+    });
+
+    socket.on('server-online', (array) => {
+        document.getElementById('online_list').innerHTML = "";
+        array.forEach(element => {
+            listBlock.insertAdjacentHTML('afterbegin', `<li>${element.userName}</li>`);
+        });
+        document.getElementById('counter').innerHTML = `<h2>В сети: ${array.length}</h2>`;     
+    });
+
+</script>
+</body>
+</html>
